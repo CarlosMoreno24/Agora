@@ -22,5 +22,6 @@ $contador = mysqli_num_rows($sql);
 
 //Conteo de nuevos contactos 
 $sql = mysqli_query($connection, "SELECT COUNT(*) FROM contacto WHERE fecha_creacion >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)");
-$conteoMes = mysqli_fetch_column($sql);
+$row = mysqli_fetch_row($sql);
+$conteoMes = $row[0];
 ?>

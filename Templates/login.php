@@ -18,9 +18,8 @@ unset($_SESSION['error']);
 <body>
     <div class="auth-container">
         <div class="auth-heading">
-            <img src="../Assets/Images/LogoTrans.png" alt="Logo Escuela" style="height: 80px; margin-bottom: 1.5rem;">
-            <h1>Acceso a Agora</h1>
-            <p>Ingrese sus credenciales institucionales</p>
+            <img src="../Assets/Images/Agora_logo.png" alt="Logo Escuela" style="height: 80px; margin-bottom: 1.5rem;">
+            <p>Ingrese sus credenciales de acceso</p>
         </div>
 
         <?php if (!empty($errorMessage)) : ?>
@@ -58,6 +57,10 @@ unset($_SESSION['error']);
             <div class="text-center mt-4">
                 <a href="reset_password.html" class="text-decoration-none text-muted small">
                     ¿Olvidó su Contraseña?
+                </a>
+                <br>
+                <a href="register.php" class="text-decoration-none text-muted small">
+                    ¿No tienes cuenta? <span style="color: #FF4F5E;">Regístrate</span>
                 </a>
             </div>
         </form>
