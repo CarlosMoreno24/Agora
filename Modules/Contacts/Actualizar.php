@@ -1,37 +1,20 @@
 <?php
-$servername = "localhost"; 
-$username = "root"; 
-$password = ""; 
-$dbname = "agora";
+require_once "../../Config/conexion.php";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = intval($_POST['id_contacto']);
+    $nombre = $connection->real_escape_string($_POST['nombre']);
+    $apaterno = $connection->real_escape_string($_POST['apaterno']);
+    $amaterno = $connection->real_escape_string($_POST['amaterno']);
+    $numero_telefonico = $connection->real_escape_string($_POST['numero_telefonico']);
+    $whatsapp = $connection->real_escape_string($_POST['whatsapp']);
+    $formato = $connection->real_escape_string($_POST['formato']);
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    $sql = "UPDATE contacto SET nombre='$nombre', apaterno='$apaterno', amaterno='$amaterno', numero_telefonico='$numero_telefonico', whatsapp='$whatsapp', formato='$formato' WHERE id_contacto=$id";
+    if ($connection->query($sql)) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'error' => $connection->error]);
+    }
+    exit;
 }
-
-$id_contacto = $_POST['contactoId'];
-$nombre = $_POST['nombre'];
-$apellidoPaterno = $_POST['apellidoPaterno'];
-$apellidoMaterno = $_POST['apellidoMaterno'];
-$telefono = $_POST['telefono'];
-$whatsapp = $_POST['whatsapp'];
-$formato = $_POST['formato'];
-
-$sql = "UPDATE contacto 
-        SET nombre = ?, apaterno = ?, amaterno = ?, numero_telefonico = ?, whatsapp = ?, formato = ?
-        WHERE id_contacto = ?";
-
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssssi", $nombre, $apellidoPaterno, $apellidoMaterno, $telefono, $whatsapp, $formato, $id_contacto);
-
-if ($stmt->execute()) {
-    echo "Contacto actualizado correctamente";
-} else {
-    echo "Error al actualizar contacto: " . $stmt->error;
-}
-
-
-$stmt->close();
-$conn->close();
 ?>
