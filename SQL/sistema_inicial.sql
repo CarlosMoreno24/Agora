@@ -322,9 +322,9 @@ INSERT INTO usuario (
     estado,
     tipo_usuario
 ) VALUES (
-    'dev@gmail.com', /* Cambia este email por el que desees */
-    'password', /* Cambia esta contraseña por la que desees, en estado funcional debe ser segura y mencionada al usuario */
-    'Developer', /* Cambia este nombre por el que desees */
+    'dev@gmail.com',
+    '1234',
+    'Developer', 
     '',
     '',
     1,

@@ -18,26 +18,26 @@
             </a>
 
             <!-- Formulario -->
-            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+            <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post" autocomplete="off" novalidate>
                 <div class="form-group">
                     <label for="nombre">Nombre:</label>
                     <input type="text" class="form-control" id="nombre" placeholder="Ingresa el nombre" required
-                        name="name">
+                        name="name" minlength="2" maxlength="50">
                 </div>
                 <div class="form-group">
                     <label for="apaterno">Apellido Paterno:</label>
                     <input type="text" class="form-control" id="apaterno" placeholder="Ingresa el apellido paterno"
-                        required name="apaterno">
+                        required name="apaterno" minlength="2" maxlength="50">
                 </div>
                 <div class="form-group">
                     <label for="amaterno">Apellido Materno:</label>
                     <input type="text" class="form-control" id="amaterno" placeholder="Ingresa el apellido materno"
-                        required name="amaterno">
+                        required name="amaterno" minlength="2" maxlength="50">
                 </div>
                 <div class="form-group">
                     <label for="telefono">Número Telefónico:</label>
-                    <input type="text" class="form-control" id="telefono" placeholder="Ingresa el número telefónico"
-                        maxlength="10" pattern="\d{10}" required name="num">
+                    <input type="tel" class="form-control" id="telefono" placeholder="Ingresa el número telefónico"
+                        maxlength="15" pattern="[0-9+]{8,15}" required name="num">
                 </div>
                 <div class="form-group">
                     <label for="whatsapp">WhatsApp:</label>
@@ -49,7 +49,7 @@
                 </div>
                 <div class="form-group">
                     <label for="formato">Formato:</label>
-                    <select class="form-control" id="whatsapp" required name="formato">
+                    <select class="form-control" id="formato" required name="formato">
                         <option value="">Selecciona una opción</option>
                         <option value="Facebook">Facebook</option>
                         <option value="Familiar">Familiar</option>
@@ -64,46 +64,55 @@
         </div>
     </div>
 
-
-
-
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" integrity="sha384-rOA1PnstxnOBLzCLhp8LecxB8KG8D0x8qs5coC5pPYlq6N9VV+8zjG04R4p9IjOj" crossorigin="anonymous"></script>
 
     <?php
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        if (isset($_POST['submit'])) {
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit'])) {
+        require '../../Config/conexion.php'; // Aquí ya tienes $pdo configurado con PDO seguro
 
-            require '../../Config/conexion.php';
+        // Validación básica del lado del servidor
+        $name      = trim($_POST["name"] ?? '');
+        $apaterno  = trim($_POST["apaterno"] ?? '');
+        $amaterno  = trim($_POST["amaterno"] ?? '');
+        $num       = trim($_POST["num"] ?? '');
+        $whatsapp  = $_POST["whatsapp"] ?? '';
+        $formato   = $_POST["formato"] ?? '';
 
-            $name = $_POST["name"];
-            $apaterno = $_POST["apaterno"];
-            $amaterno = $_POST["amaterno"];
-            $num = $_POST["num"];
-            $whatsapp = $_POST["whatsapp"];
-            $formato = $_POST["formato"];
+        if ($name && $apaterno && $amaterno && preg_match("/^[0-9+]{8,15}$/", $num) && in_array($whatsapp, ["Sí", "No"]) && !empty($formato)) {
+            try {
+                $sql = "INSERT INTO contacto (nombre, apaterno, amaterno, numero_telefonico, whatsapp, formato) 
+                        VALUES (:nombre, :apaterno, :amaterno, :num, :whatsapp, :formato)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([
+                    ':nombre'   => $name,
+                    ':apaterno' => $apaterno,
+                    ':amaterno' => $amaterno,
+                    ':num'      => $num,
+                    ':whatsapp' => $whatsapp,
+                    ':formato'  => $formato
+                ]);
 
-            $sql = mysqli_query($connection, "INSERT INTO contacto (nombre, apaterno, amaterno, numero_telefonico, whatsapp, formato) values ('$name', '$apaterno', '$amaterno', '$num', '$whatsapp', '$formato') ");
-            if ($sql) {
                 echo "<script>
-        window.onload = function() {
-            document.getElementById('overlay').style.display = 'flex';
-        }
-        </script>";
-            } else {
-                echo "No se creó el contacto";
+                    window.onload = function() {
+                        document.getElementById('overlay').style.display = 'flex';
+                    }
+                </script>";
+            } catch (PDOException $e) {
+                error_log('Error al crear contacto: ' . $e->getMessage());
+                echo "<div class='alert alert-danger text-center'>Error al crear el contacto.</div>";
             }
+        } else {
+            echo "<div class='alert alert-warning text-center'>Datos inválidos. Verifica el formulario.</div>";
         }
     }
     ?>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha384-ZvpUoO/+Pw5y+q2K6YhEcnPwBOG3bH6z6lXFWjT3zVjwD5JpN96CB2TF+qsSVqU0" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 
-
-<!--Ventanas emergentes -->
+<!-- Ventana emergente -->
 <div class="overlay" id="overlay" style="display: none;">
     <div class="popup">
         <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -116,14 +125,10 @@
     </div>
 </div>
 
-
-
 <script>
     function closePopup() {
         document.getElementById('overlay').style.display = 'none';
     }
 </script>
-
-
 
 </html>

@@ -1,29 +1,39 @@
 <?php
 session_start();
-include "../../Config/conexion.php";
+require_once "../../Config/conexion.php"; // aquí ya tienes $pdo creado con PDO y .env
 
-$mail = mysqli_real_escape_string($connection, $_POST["email"]); 
-$pwd = mysqli_real_escape_string($connection, $_POST["password"]);
+// 1. Sanitizar entrada básica
+$email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+$password = $_POST['password'] ?? '';
 
-$sql = "SELECT * FROM usuario WHERE email='$mail'";
-$result = mysqli_query($connection, $sql);
+if (!$email || !$password) {
+    $_SESSION['error'] = "Datos inválidos.";
+    header('Location: ../../Templates/login.php');
+    exit();
+}
 
-if (mysqli_num_rows($result) > 0) {
-    $colum = mysqli_fetch_array($result);
-    $mail2 = $colum['email'];
-    $pwd2 = $colum['password'];
-    $estado = $colum['estado'];
-    $tipo_user = $colum['tipo_usuario'];
+// 2. Consulta preparada para obtener al usuario
+$sql = "SELECT id_usuario, nombre, apaterno, amaterno, email, password, estado, tipo_usuario 
+        FROM usuario 
+        WHERE email = :email 
+        LIMIT 1";
 
-    if ($mail2 == $mail && $pwd == $pwd2) {
-        if ($estado == 1) {
-            $_SESSION['id_usuario'] = $colum['id_usuario'];
-            $_SESSION['nombre'] = $colum['nombre'];
-            $_SESSION['email'] = $mail;
-            $_SESSION['apaterno'] = $colum['apaterno'];
-            $_SESSION['amaterno'] = $colum['amaterno'];
-            $_SESSION['tipo_usuario'] = $colum['tipo_usuario']; 
-            $_SESSION['usuario'] = $mail; 
+$stmt = $pdo->prepare($sql);
+$stmt->execute(['email' => $email]);
+$user = $stmt->fetch();
+
+if ($user) {
+    // 3. Verificar contraseña con hash seguro
+    if (password_verify($password, $user['password'])) {
+        if ($user['estado'] == 1) {
+            // 4. Guardar datos en sesión
+            $_SESSION['id_usuario']   = $user['id_usuario'];
+            $_SESSION['nombre']       = $user['nombre'];
+            $_SESSION['apaterno']     = $user['apaterno'];
+            $_SESSION['amaterno']     = $user['amaterno'];
+            $_SESSION['email']        = $user['email'];
+            $_SESSION['tipo_usuario'] = $user['tipo_usuario'];
+            $_SESSION['usuario']      = $user['email'];
 
             header('Location: ../../index.php');
             exit();
@@ -37,7 +47,6 @@ if (mysqli_num_rows($result) > 0) {
     $_SESSION['error'] = "Usuario no encontrado.";
 }
 
-
+// Redirigir siempre al login si hay error
 header('Location: ../../Templates/login.php');
 exit();
-?>
